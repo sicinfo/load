@@ -1,0 +1,12 @@
+{
+  "name": "load",
+  "version": "0.0.2",
+  "config": {
+    "host": "localhost",
+    "port": "3000",
+    "appsDirs": "dist"
+  },
+  "scripts": {
+    "start": "node load/index.js"
+  }
+}
