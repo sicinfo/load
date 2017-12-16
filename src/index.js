@@ -17,9 +17,10 @@ const APPSDIRS = (function(arg) {
   '/' == arg[0] || (arg = path.join(process.env.PWD || process.env.HOME, arg))
   return arg;
 }(process.env.npm_package_config_appsDirs || 'dist'));
+
 const HOST = process.env.npm_package_config_host ||  'localhost';
 const PORT = process.env.npm_package_config_port || 3000;
-const URL = process.env.npm_package_config_url || 'WS';
+const URL  = process.env.npm_package_config_url  || 'WS';
 
 const reject = (res, msg = null, code = 404) => {
   res.writeHead(

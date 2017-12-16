@@ -7,6 +7,6 @@
     "appsDirs": "dist"
   },
   "scripts": {
-    "start": "node load/index.js"
+    "start": "node index.js"
   }
 }
