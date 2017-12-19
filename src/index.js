@@ -3,6 +3,7 @@
  *
  * module: server.js
  *
+ * o modol
  */
 
 // res.setHeader('Access-Control-Allow-Origin', '*');
@@ -13,14 +14,13 @@ const fs = require('fs');
 const path = require('path');
 const createServer = require('http').createServer;
 
-const APPSDIRS = (function(arg) {
-  '/' == arg[0] || (arg = path.join(process.env.PWD || process.env.HOME, arg))
-  return arg;
-}(process.env.npm_package_config_appsDirs || 'dist'));
-
-const HOST = process.env.npm_package_config_host ||  'localhost';
-const PORT = process.env.npm_package_config_port || 3000;
-const URL  = process.env.npm_package_config_url  || 'WS';
+const PWD = process.env.pm_cwd || process.env.PWD;
+const HOME = process.env.HOME || PWD;
+const conf = require(`${PWD}/package.json`).config;
+const APPSDIRS = (arg => arg[0].startsWith('/') ? arg : path.join(arg[0].startsWith('~') ? HOME : PWD, arg))(conf.appsDirs || 'dist');
+const HOST = conf.host ||  'localhost';
+const PORT = conf.port || 3000;
+const URL = conf.url  || 'WS';
 
 const reject = (res, msg = null, code = 404) => {
   res.writeHead(
@@ -36,7 +36,7 @@ createServer((req, res) => {
   const url = req.url.split('/');
   if (url.length < 2) return reject(res);
 
-  if ('unload' == url[1]) {
+  if (url[1].endsWith('unload')) {
 
     let msg = ['unload:'];
 
@@ -54,11 +54,11 @@ createServer((req, res) => {
 
   fs.stat(base, (err, stats) => {
 
-    if (err) reject(res, err.message);
+    if (err) reject(res, (msg => {
+      return 'ENOENT' == err.code ? msg.replace(`${APPSDIRS}/`, '') : msg;
+    })(err.message));
 
     else if (stats.isDirectory()) {
-
-      console.log(__filename, req.url, req.url.replace('/' + url[1], ''));
 
       req.url = req.url.replace('/' + url[1], '') || '/';
       require(base)(req, res);
@@ -68,12 +68,7 @@ createServer((req, res) => {
   })
 
 }).listen(PORT, err => {
-
   if (err) return;
 
-  console.log(
-    '-------------------------------------\n',
-    HOST + ':' + PORT + APPSDIRS, '\n\n\n\n\n'
-  );
-
+  console.log(`-------------------------------------\n${HOST}:${PORT}${APPSDIRS}\n\n\n\n\n`);
 });
