@@ -3,7 +3,8 @@
  *
  * module: server.js
  *
- * o modol
+ * [2018-01-25] 
+ * - passa parametros para chamadas
  */
 
 // res.setHeader('Access-Control-Allow-Origin', '*');
@@ -11,16 +12,17 @@
 // res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With, content-type, Authorization');
 
 const fs = require('fs');
-const path = require('path');
+const { join } = require('path');
 const createServer = require('http').createServer;
 
-const PWD = process.env.pm_cwd || process.env.PWD;
-const HOME = process.env.HOME || PWD;
-const conf = require(`${PWD}/package.json`).config;
-const APPSDIRS = (arg => arg[0].startsWith('/') ? arg : path.join(arg[0].startsWith('~') ? HOME : PWD, arg))(conf.appsDirs || 'dist');
-const HOST = conf.host ||  'localhost';
-const PORT = conf.port || 3000;
-const URL = conf.url  || 'WS';
+const options = ((pwd, home, appsDirs, host, port, url) => {
+  home || (home = pwd);
+  let opts = Object.assign({pwd, home, appsDirs, host, port, url}, require(`${pwd}/package.json`).config);
+  opts.appsDirs.startsWith('/') || (
+    opts.appsDirs = join(opts.appsDirs.startsWith('~') ? home : pwd, opts.appsDirs)
+  );
+  return opts;
+})(process.env.pm_cwd || process.env.PWD, process.env.HOME, 'dist', 'localhost', 3000, 'WS');
 
 const reject = (res, msg = null, code = 404) => {
   res.writeHead(
@@ -32,6 +34,8 @@ const reject = (res, msg = null, code = 404) => {
 };
 
 createServer((req, res) => {
+
+  // console.log(`${req.method} - ${req.headers.origin}`);
 
   const url = req.url.split('/');
   if (url.length < 2) return reject(res);
@@ -50,25 +54,30 @@ createServer((req, res) => {
     return;
   }
 
-  const base = path.join(APPSDIRS, url[1]);
+  const base = join(options.appsDirs, url[1]);
 
   fs.stat(base, (err, stats) => {
 
     if (err) reject(res, (msg => {
-      return 'ENOENT' == err.code ? msg.replace(`${APPSDIRS}/`, '') : msg;
+      return 'ENOENT' == err.code ? msg.replace(`${options.appsDirs}/`, '') : msg;
     })(err.message));
 
     else if (stats.isDirectory()) {
 
       req.url = req.url.replace('/' + url[1], '') || '/';
+
+      // console.log(`${base}`);
+      // console.log(options);
+
+      res.local = {options};
+
       require(base)(req, res);
 
     } else reject(res, 'not found');
 
   })
 
-}).listen(PORT, err => {
+}).listen(options.port, err => {
   if (err) return;
-
-  console.log(`-------------------------------------\n${HOST}:${PORT}${APPSDIRS}\n\n\n\n\n`);
+  console.log(`-------------------------------------\n${options.host}:${options.port}${options.appsDirs}\n\n\n\n\n`);
 });
