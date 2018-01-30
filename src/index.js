@@ -2,6 +2,7 @@
  * application: load
  *
  * module: server.js
+ * [0.0.4]
  *
  * [2018-01-25] 
  * - passa parametros para chamadas
