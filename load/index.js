@@ -5,23 +5,36 @@
  * [0.0.4]
  *
  * [2018-01-25] 
- * - passa parametros para chamadas
+ * - passa parametros para chamadas 
  */
 
 // res.setHeader('Access-Control-Allow-Origin', '*');
 // res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, PUT');
 // res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With, content-type, Authorization');
 
-const fs = require('fs');
+const { stat } = require('fs');
 const { join } = require('path');
-const createServer = require('http').createServer;
+const { createServer } = require('http');
 
 const options = ((pwd, home, appsDirs, host, port, url) => {
+  
+  // console.log(pwd);
+  // console.log(home);
+  // console.log(appsDirs);
+  // console.log(host);
+  // console.log(port);
+  // console.log(url);
+  
   home || (home = pwd);
-  let opts = Object.assign({pwd, home, appsDirs, host, port, url}, require(`${pwd}/package.json`).config);
+  
+  const opts = Object.assign({pwd, home, appsDirs, host, port, url}, require(`${pwd}/package.json`).config);
+  
   opts.appsDirs.startsWith('/') || (
     opts.appsDirs = join(opts.appsDirs.startsWith('~') ? home : pwd, opts.appsDirs)
   );
+  
+  // console.log(opts);
+  
   return opts;
 })(process.env.pm_cwd || process.env.PWD, process.env.HOME, 'dist', 'localhost', 3000, 'WS');
 
@@ -38,45 +51,53 @@ createServer((req, res) => {
 
   // console.log(`${req.method} - ${req.headers.origin}`);
 
-  const url = req.url.split('/');
-  if (url.length < 2) return reject(res);
+  const url = [req.headers.host.split('.')[0]].concat(req.url.split('/').slice(1));
 
-  if (url[1].endsWith('unload')) {
+  // console.log(url);
+  // console.log(req.method);
 
-    let msg = ['unload:'];
+  if (url.length < 3) return reject(res);
+
+  if ('unload' === url[2]) {
+
+    const msg = ['unload:'];
 
     Object.keys(require.cache).filter((k, i) => i).forEach((k, i) => {
       msg.push('' + (i + 1) + ' - ' + k);
-      delete require.cache[k]
+      delete require.cache[k];
     });
 
     reject(res, msg.join('\n') + '\n', 200);
 
     return;
   }
+  
+  const base = join(options.appsDirs, `${url[1]}_${url[0]}`);
+  
+  // console.log(base);
 
-  const base = join(options.appsDirs, url[1]);
-
-  fs.stat(base, (err, stats) => {
+  stat(base, (err, stats) => {
 
     if (err) reject(res, (msg => {
-      return 'ENOENT' == err.code ? msg.replace(`${options.appsDirs}/`, '') : msg;
+      return 'ENOENT' === err.code ? msg.replace(`${options.appsDirs}/${url[1]}_`, '') : msg;
     })(err.message));
 
     else if (stats.isDirectory()) {
 
-      req.url = req.url.replace('/' + url[1], '') || '/';
+      req.url = `/${url.slice(2).join('/')}`;
 
-      // console.log(`${base}`);
       // console.log(options);
+      // console.log(req.url);
 
       res.local = {options};
 
       require(base)(req, res);
 
-    } else reject(res, 'not found');
+    } 
+    
+    else reject(res, 'not found');
 
-  })
+  });
 
 }).listen(options.port, err => {
   if (err) return;
