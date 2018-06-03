@@ -1,4 +1,6 @@
 {
-  "version": "0.0.7",
-  "name": "sicinfo-load"
+  "version": "0.1.0",
+  "name": "sicinfo-load",
+  "dependencies": {
+  }
 }
