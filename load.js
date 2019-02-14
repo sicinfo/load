@@ -85,7 +85,10 @@ server.on('request', (req, res) => {
   // primeiro nível de micro serviço
   if ('function' !== typeof _routes[_url]) {
     const { options, _dirname } = _routes[_url];
-    _routes[_url] = require(_dirname)(options, _dirname);
+    _routes[_url] = class extends require(_dirname) {
+      get options() { return options }
+      get dirname() {return _dirname }
+    };
   }
   
   req.originalUrl = req.url;
