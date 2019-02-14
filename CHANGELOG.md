@@ -1,5 +1,8 @@
 # sicinfo-load
 
+## [1.0.2] Unversioned
+- 
+
 ## [1.0.0] 2019-02-06 Moreira
 - rescrita do codigo
 
