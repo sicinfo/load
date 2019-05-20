@@ -1,5 +1,11 @@
 # load
  carregador de primeiro nível de micro serviço
+ 
+### tutoriais
+
+```
+https://www.tutorialspoint.com/nodejs/nodejs_net_module.htm
+```
 
 ### iniciar:
 ```

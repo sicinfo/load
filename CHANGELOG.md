@@ -1,5 +1,10 @@
 # sicinfo-load
 
+## [1.1.0] moreira in 2019-05-20
+- inclui novas funcionalidades
+- inclui arquivos de mytils
+- inclui test com mocha
+
 ## [1.0.3] [2019-02-22] Moreira
 - altera organização de diretórios
 
