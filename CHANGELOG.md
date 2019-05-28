@@ -1,5 +1,9 @@
 # sicinfo-load
 
+## [1.1.1] moreira in 2019-05-28
+- corrige package.json
+  - inclui dependencias
+
 ## [1.1.0] moreira in 2019-05-20
 - inclui novas funcionalidades
 - inclui arquivos de mytils

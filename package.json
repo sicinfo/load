@@ -1,7 +1,9 @@
 {
-  "version": "1.1.0",
+  "version": "1.1.1",
   "name": "sicinfo-load",
   "description": "carregador de primeiro nível de micro serviço",
-  "main": "src/index.js",
-  "dependencies": {}
+  "main": "libs/index.js",
+  "dependencies": {
+    "websocket": "^1.0"
+  }
 }
