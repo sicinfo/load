@@ -21,11 +21,6 @@ module.exports = class RouterHttp extends require('./router') {
     
     this[symb] = { request, response };
 
-    [ 
-      this[symb].key, 
-      this[symb].rev 
-    ] = this.url.split('?')[0].split('/').slice(2).concat([undefined, undefined]);
-    
     this[symb].query = this.isGetMethod ? require('url').parse(this.originalUrl, true).query : {};
 
     if (this.isGetMethod) {
@@ -84,14 +79,6 @@ module.exports = class RouterHttp extends require('./router') {
     });
   }
   
-  get key() {
-    return this[symb].key;
-  }
-    
-  get rev() {
-    return this[symb].rev;
-  }
-    
   get query() {
     return this[symb].query || {};
   }

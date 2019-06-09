@@ -13,7 +13,7 @@ const
   // symb = Symbol(),
   AUTHORIZATION = 'authorization';
 
-module.exports = class ServiceHttpLogin extends require('./servicehttp') {
+module.exports = class ServiceHttpLogin extends require('./service-http') {
   
   get user() {
     return this.isAuthorized && Buffer.from(

@@ -3,6 +3,7 @@
   "name": "sicinfo-load",
   "description": "carregador de primeiro nível de micro serviço",
   "main": "libs/index.js",
+  "type": "module",
   "dependencies": {
     "websocket": "^1.0"
   }

@@ -12,7 +12,7 @@ log('loading...');
 const 
   symb = Symbol();
 
-module.exports = class extends require('./routerhttp') {
+module.exports = class extends require('./router-http') {
   
   constructor(request, response, options) {
     super(request, response, options);

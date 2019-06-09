@@ -76,14 +76,6 @@ module.exports = class ServiceHttp extends require('./service') {
     accept({});
   }
 
-  get key() {
-    return this[symb].router.key;
-  }
-    
-  get rev() {
-    return this[symb].router.rev;
-  }
-  
   get query() {
     return this[symb].router.query;
   }

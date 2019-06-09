@@ -65,7 +65,7 @@ module.exports =  class  {
     const filename = require('path').join(
       this.dirname, 
       this.dirservices, 
-      `${url.split('/')[1]}-service.js`
+      `${url.split('/')[1]}-service`
     );
     
     try { return require(filename) }

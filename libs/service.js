@@ -13,6 +13,11 @@ module.exports = class Service {
   
   constructor(router) {
     this[symb] = { router };
+    
+    [ 
+      this[symb].key, 
+      this[symb].rev 
+    ] = router.url.split('?')[0].split('/').slice(2).concat([undefined, undefined]);
   }
   
   _do() {}
@@ -24,5 +29,12 @@ module.exports = class Service {
   get protocol() {
     return this[symb].router.protocol;
   }
+  
+  get key() {
+    return this[symb].key;
+  }
 
+  get rev() {
+    return this[symb].rev;
+  }
 };
