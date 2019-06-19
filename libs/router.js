@@ -56,7 +56,7 @@ module.exports =  class  {
     return 'services';
   }
   
-  // segundo nível
+  // nível de serviço
   get service()  {
     
     const url = this.url.split('?')[0];
