@@ -1,5 +1,5 @@
 {
-  "version": "1.2.0",
+  "version": "1.2.1",
   "name": "sicinfo-load",
   "description": "carregador de primeiro nível de micro serviço",
   "main": "libs/index.js",

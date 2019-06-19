@@ -1,5 +1,8 @@
 # sicinfo-load
 
+## [1.2.1] moreira in 2019-06-19
+- inclui dirname para service
+
 ## [1.2.0] moreira in 2019-06-06
 - altera para service ser, também, um diretório
 

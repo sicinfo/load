@@ -37,4 +37,8 @@ module.exports = class Service {
   get rev() {
     return this[symb].rev;
   }
+  
+  get dirname() {
+    return this[symb].router.dirname;
+  }
 };
