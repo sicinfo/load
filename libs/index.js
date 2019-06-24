@@ -137,7 +137,7 @@ module.exports = function(env) {
     
     request.originalUrl = request.url;
     
-    route({'protocol': 'HTTP', request, response})
+    route({ 'protocol': 'HTTP', request, response })
       .then(({ router, options }) => { new router(options) })
       .catch(({ message }) => {
         response.statusCode = 404;

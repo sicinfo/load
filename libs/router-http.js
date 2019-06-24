@@ -16,7 +16,7 @@ module.exports = class RouterHttp extends require('./router') {
   constructor(options) {
     super(options);
     
-    this[symb].response = options.response;
+    this[symb] = { 'response': options.response};
     this[symb].query = this.isGetMethod ? require('url').parse(this.originalUrl, true).query : {};
     
     const { request, response } = this;
