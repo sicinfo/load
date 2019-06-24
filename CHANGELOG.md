@@ -1,5 +1,8 @@
 # sicinfo-load
 
+## [2.0.0]
+- altera assinatura dos methods de router
+
 ## [1.2.1] moreira in 2019-06-19
 - inclui dirname para service
 

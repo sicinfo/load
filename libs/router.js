@@ -9,32 +9,37 @@
 const log = (a, ...b) => console.log(a, __filename, ...b);
 log('loading...');
 
-const
-  symb = Symbol(),
-  path = require('path');
+const symb = Symbol();
 
 module.exports =  class  {
 
   constructor(options) {
     this[symb] = {
       'dirname': options.dirname,
-      'originalUrl': options.originalUrl,
+      'request': options.request,
       'url': options.url,
-      'appname': options.appname,
-      'dbconfig': options.dbconfig
+      'appname': options.appname
     };
   }
   
-  get dialect() {
-    return;
-  }
-    
   get appname() {
     return this[symb].appname;
   }
     
+  get request() {
+    return this[symb].request;
+  }
+  
+  get headers()  {
+    return this.request.headers;
+  }
+    
+  get method() {
+    return this.request.method;
+  }
+  
   get originalUrl() {
-    return this[symb].originalUrl;
+    return this.request.originalUrl;
   }
   
   get url() {
@@ -43,13 +48,6 @@ module.exports =  class  {
   
   get dirname() {
     return this[symb].dirname;
-  }
-  
-  get dbconfig() {
-    if (!this.dialect) return {};
-    if (!this[symb].dbconfig[this.dialect]) return {};
-    if (!this[symb].dbconfig[this.dialect][this.appname]) return {};
-    return Object.assign({'database': this.appname}, this[symb].dbconfig[this.dialect][this.appname]);
   }
   
   get dirservices() {

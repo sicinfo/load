@@ -9,20 +9,18 @@
 const log = (a, ...b) => console.log(a, __filename, ...b);
 log('loading...');
 
-const 
-  symb = Symbol(),
-  { join } = require('path'),
-  Auth = require('./auth');
+const symb = Symbol();
 
 module.exports = class RouterHttp extends require('./router') {
   
-  constructor(request, response, options) {
+  constructor(options) {
     super(options);
     
-    this[symb] = { request, response };
-
+    this[symb].response = options.response;
     this[symb].query = this.isGetMethod ? require('url').parse(this.originalUrl, true).query : {};
-
+    
+    const { request, response } = this;
+    
     if (this.isGetMethod) {
       this[symb].query = require('url').parse(this.originalUrl, true).query;
       this.do_(request, response);
@@ -45,12 +43,14 @@ module.exports = class RouterHttp extends require('./router') {
     
     if (!service) {
       this.statusCode(404).json({ 
-        'message': `${join(originalUrl.split(url)[0], url)} - not found!` 
+        'message': `${require('path').join(originalUrl.split(url)[0], url)} - not found!` 
       });
       return;
     }
     
-    const _service = new service(this);
+    const 
+      Auth = require('./auth'),
+      _service = new service(this);
     
     Auth.validate(authorization, _service.requiredAuthorization)
     .then(({ token }) => {
@@ -79,6 +79,10 @@ module.exports = class RouterHttp extends require('./router') {
     });
   }
   
+  get response() {
+    return this[symb].response;
+  }
+  
   get query() {
     return this[symb].query || {};
   }
@@ -87,18 +91,10 @@ module.exports = class RouterHttp extends require('./router') {
     return this[symb].body || (this[symb].body = {});
   }
   
-  get method() {
-    return this[symb].request.method;
-  }
-  
   get isGetMethod() {
     return 'GET' === this.method;
   }
   
-  get headers()  {
-    return this[symb].request.headers;
-  }
-    
   get hostname() {
     return this.headers.host;
   }
@@ -112,27 +108,23 @@ module.exports = class RouterHttp extends require('./router') {
   }
   
   setHeader(key, value) {
-    this[symb].response.setHeader(key, value);
+    this.response.setHeader(key, value);
     return this;
   }
   
   statusCode(code) {
-    this[symb].response.statusCode = code;
+    this.response.statusCode = code;
     return this;
   }
   
   json(data) {
     this.setHeader('content-type', 'application/json');
-    this[symb].response.end(JSON.stringify(data), 'utf8');
+    this.response.end(JSON.stringify(data), 'utf8');
   }
   
   send(arg) {
     this.setHeader('content-type', 'text/plain');
-    this[symb].response.end(arg, 'utf8');
+    this.response.end(arg, 'utf8');
   }
-
-  has(arg) {
-    return arg in this[symb] || super.has(arg);
-  }
-
+  
 };

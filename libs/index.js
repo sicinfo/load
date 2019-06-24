@@ -77,7 +77,8 @@ module.exports = function(env) {
     route = options => new Promise((accept, reject) => {
       
       const 
-        { protocol, method, originalUrl } = options,
+        { protocol } = options,
+        { method, originalUrl } = options.request,
         routeName = originalUrl.split('/').slice(0, 3).join('/'),
         routers = _routers[protocol] || (_routers[protocol] = {});
 
@@ -107,21 +108,17 @@ module.exports = function(env) {
           return process.env.NODE_ENV === 'dev' && error;
         }
         
-        const appname = routeName.slice(1).split('/')[1];
         routers[routeName] = [
           require(join(dirname, main)),
-          assign({ version, 'dirname': realpathSync(dirname) }, CONFIG, { dbconfig, appname })
+          assign({ version, 'appname': routeName.slice(1).split('/')[1], 'dirname': realpathSync(dirname) }, CONFIG)
         ];
       }
       
-      Object.keys(routers[routeName][1]).forEach(key => {
-        key in options || (options[key] = routers[routeName][1][key]);
-      });
-      
-      options.url = originalUrl.replace(routeName, '');
-      
       try { 
-        accept({ 'router': routers[routeName][0], 'options': assign({}, options) });
+        accept({ 
+          'router': routers[routeName][0],
+          'options': assign({}, routers[routeName][1], options, { 'url': originalUrl.replace(routeName, '') })
+        });
         if (process.env.NODE_ENV === 'dev') return _routers;
       }
       catch (err) { 
@@ -138,17 +135,15 @@ module.exports = function(env) {
     
   httpServer.on('request', (request, response) => {
     
-    route({
-      'protocol': 'HTTP',
-      'method': request.method,
-      'originalUrl': request.url
-    }).then(({ router, options }) => {
-      new router(request, response, options);
-    }).catch(({ message }) => {
-      response.statusCode = 404;
-      response.setHeader('content-type', 'application/json');
-      response.end(JSON.stringify({ 'message': `${message} - not found!` }));
-    });
+    request.originalUrl = request.url;
+    
+    route({'protocol': 'HTTP', request, response})
+      .then(({ router, options }) => { new router(options) })
+      .catch(({ message }) => {
+        response.statusCode = 404;
+        response.setHeader('content-type', 'application/json');
+        response.end(JSON.stringify({ 'message': `${message} - not found!` }));
+      });
     
   });
   

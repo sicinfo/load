@@ -13,9 +13,14 @@ const symb = Symbol();
 
 module.exports = class ServiceHttp extends require('./service') {
   
-  constructor(router) {
-    super(router);
-    this[symb] = { router };
+  constructor(options) {
+    super(options);
+    
+    this[symb] = ((...args) => {
+      const _options = {};
+      args.forEach(key => { _options[key] = options[key] });
+      return _options;
+    })('query', 'body', 'ip', 'method', 'authorization');
   }
   
   do_() {
@@ -77,23 +82,23 @@ module.exports = class ServiceHttp extends require('./service') {
   }
 
   get query() {
-    return this[symb].router.query;
+    return this[symb].query;
   }
   
   get body() {
-    return this[symb].router.body;
+    return this[symb].body;
   }
 
   get ip() {
-    return this[symb].router.ip;
+    return this[symb].ip;
   }
   
   get method() {
-    return this[symb].router.method;
+    return this[symb].method;
   }
   
   get authorization() {
-    return this[symb].router.authorization;
+    return this[symb].authorization;
   }
   
   get isAuthorized() {
