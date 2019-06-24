@@ -6,18 +6,22 @@
 const log = (a, ...b) => console.log(a, __filename, ...b);
 log('loading...');
 
-const 
-  symb = Symbol();
+const symb = Symbol();
  
 module.exports = class Service {
   
-  constructor(router) {
-    this[symb] = { router };
+  constructor(options) {
+    this[symb] = {}
     
+    [
+      'protocol', 
+      'dirname'
+    ].forEach(key => { this[symb][key] = options[key] });
+
     [ 
       this[symb].key, 
       this[symb].rev 
-    ] = router.url.split('?')[0].split('/').slice(2).concat([undefined, undefined]);
+    ] = options.url.split('?')[0].split('/').slice(2).concat([undefined, undefined]);
   }
   
   _do() {}
@@ -27,7 +31,7 @@ module.exports = class Service {
   }
   
   get protocol() {
-    return this[symb].router.protocol;
+    return this[symb].protocol;
   }
   
   get key() {
@@ -39,6 +43,6 @@ module.exports = class Service {
   }
   
   get dirname() {
-    return this[symb].router.dirname;
+    return this[symb].dirname;
   }
 };
