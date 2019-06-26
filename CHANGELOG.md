@@ -1,5 +1,9 @@
 # sicinfo-load
 
+## [2.0.2]
+- altera assinatura dos methods de service com inclusão de *callback*
+  em substituição do métod "do_"
+
 ## [2.0.0]
 - altera assinatura dos methods de router
 
