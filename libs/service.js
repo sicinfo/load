@@ -10,23 +10,8 @@ const symb = Symbol();
  
 module.exports = class Service {
   
-  constructor(router) {
-    this[symb] = Object.assign(...[
-        'protocol',
-        'dirname',
-        'ip',
-        'method',
-        'authorization'
-      ].map(k => (a => (a[k] = router[k], a))({})));
-
-    [ 
-      this[symb].key, 
-      this[symb].rev 
-    ] = router.url
-      .split('?')[0]
-      .split('/')
-      .slice(2)
-      .concat([undefined, undefined]);
+  constructor(arg) {
+    this[symb] = { arg };
   }
   
   get requiredAuthorization() {
@@ -34,31 +19,31 @@ module.exports = class Service {
   }
   
   get protocol() {
-    return this[symb].protocol;
+    return this[symb].arg.protocol;
   }
   
   get dirname() {
-    return this[symb].dirname;
+    return this[symb].arg.dirname;
   }
   
   get key() {
-    return this[symb].key;
+    return this[symb].arg.url.split('?')[0].split('/')[2];
   }
 
   get rev() {
-    return this[symb].rev;
+    return this[symb].arg.url.split('?')[0].split('/')[3];
   }
   
   get ip() {
-    return this[symb].ip;
+    return this[symb].arg.ip;
   }
   
   get method() {
-    return this[symb].method;
+    return this[symb].arg.method;
   }
   
   get authorization() {
-    return this[symb].authorization;
+    return this[symb].arg.authorization;
   }
   
   get isAuthorized() {
@@ -66,7 +51,7 @@ module.exports = class Service {
   }
   
   get isGetMethod() {
-    return 'GET' === this.method;
+    return this[symb].arg.isGetMethod;
   }
   
 };
