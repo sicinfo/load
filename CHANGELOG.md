@@ -1,5 +1,8 @@
 # sicinfo-load
 
+## [2.0.3]
+- correções diversas
+
 ## [2.0.2]
 - altera assinatura dos methods de service com inclusão de *callback*
   em substituição do métod "do_"

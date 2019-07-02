@@ -15,15 +15,8 @@ module.exports = class ServiceHttp extends require('./service') {
   
   constructor(arg, cb) {
     super(arg);
+    this[symb] = { arg };
     
-    this[symb] = Object.assign(...[
-        'hasQuery',
-        'query',
-        'hasBody',
-        'body',
-        'dbconfig'
-      ].map(k => (a => (a[k] = arg[k], a))({})));
-
     cb(new Promise((accept, reject) => {
         this[`do_${this.method.toLowerCase()}`](accept, reject);
       })
@@ -72,23 +65,23 @@ module.exports = class ServiceHttp extends require('./service') {
   }
 
   get hasQuery() {
-    return this[symb].hasQuery;
+    return this[symb].arg.hasQuery;
   }
   
   get query() {
-    return this[symb].query;
+    return this[symb].arg.query;
   }
   
   get hasBody() {
-    return this[symb].hasBody;
+    return this[symb].arg.hasBody;
   }
 
   get body() {
-    return this[symb].body;
+    return this[symb].arg.body;
   }
 
   get dbconfig() {
-    return this[symb].dbconfig;
+    return this[symb].arg.dbconfig;
   }
   
 };

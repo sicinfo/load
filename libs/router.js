@@ -13,138 +13,66 @@ const symb = Symbol();
 
 module.exports =  class  {
 
-  constructor(options) {
-    this[symb] = {
-      'dirname': options.dirname,
-      'request': options.request,
-      'url': options.url,
-      'appname': options.appname
-    };
+  constructor(arg) {
+    this[symb] = { arg };
   }
   
   get appname() {
-    return this[symb].appname;
+    return this[symb].arg.appname;
   }
     
   get headers()  {
-    return this[symb].request.headers;
+    return this[symb].arg.request.headers;
   }
-    
+  
+  get hostname() {
+    return this.headers.host;
+  }
+  
+  get ip() {
+    return this.headers['x-real-ip'];
+  }
+  
+  get authorization() {
+    return this.headers.authorization || '';
+  }
+
   get method() {
-    return this[symb].request.method;
+    return this[symb].arg.request.method;
+  }
+  
+  get isGetMethod() {
+    return 'GET' === this.method;
   }
   
   get originalUrl() {
-    return this[symb].request.originalUrl;
+    return this[symb].arg.request.url;
   }
   
   get url() {
-    return this[symb].url;
+    return this[symb].arg.url;
   }
   
   get dirname() {
-    return this[symb].dirname;
+    return this[symb].arg.dirname;
   }
   
   get dirservices() {
     return 'services';
   }
   
+  get serviceName() {
+    return (url => '/' !== url && url.split('/')[1])(this.url.split('?')[0]);
+  }
+  
   // nível de serviço
   get service()  {
+
+    const { serviceName, dirname, dirservices } = this;
+    if (!serviceName) return;
     
-    const url = this.url.split('?')[0];
-    if ('/' === url) return;
-    
-    const filename = require('path').join(
-      this.dirname, 
-      this.dirservices, 
-      `${url.split('/')[1]}-service`
-    );
-    
-    try { return require(filename) }
+    try { return require(require('path').join(dirname, dirservices, `${this.serviceName}-service`)) }
     catch(err) {}
   }
   
 };
-
-
-
-
-
-
-
-
-// /** **
-// * application: load
-// * 
-// * powered by Moreira in 2019-04-10
-// * 
-// * http://www.typescriptlang.org/play/index.html
-// */
- 
-// const log = (a, ...b) => console.log(a, __filename, ...b);
-// log('loading...');
-
-// const symb = Symbol();
-
-// module.exports =  class  {
-
-//   constructor(options) {
-//     this[symb] = {
-//       'dirname': options.dirname,
-//       'request': options.request,
-//       'url': options.url,
-//       'appname': options.appname
-//     };
-//   }
-  
-//   get appname() {
-//     return this[symb].appname;
-//   }
-    
-//   get request() {
-//     return this[symb].request;
-//   }
-  
-//   get headers()  {
-//     return this.request.headers;
-//   }
-    
-//   get method() {
-//     return this.request.method;
-//   }
-  
-//   get originalUrl() {
-//     return this.request.originalUrl;
-//   }
-  
-//   get url() {
-//     return this[symb].url;
-//   }
-  
-//   get dirname() {
-//     return this[symb].dirname;
-//   }
-  
-//   get dirservices() {
-//     return 'services';
-//   }
-  
-//   // nível de serviço
-//   get service()  {
-    
-//     const url = this.url.split('?')[0];
-//     if ('/' === url) return;
-    
-//     const filename = require('path').join(
-//       this.dirname, 
-//       this.dirservices, 
-//       `${url.split('/')[1]}-service`
-//     );
-    
-//     try { return require(filename) }
-//     catch(err) {}
-//   }
-  
-// };
