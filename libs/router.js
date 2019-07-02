@@ -68,10 +68,10 @@ module.exports =  class  {
   // nível de serviço
   get service()  {
 
-    const { serviceName, dirname, dirservices } = this;
-    if (!serviceName) return;
-    
-    try { return require(require('path').join(dirname, dirservices, `${this.serviceName}-service`)) }
+    if (this.serviceName) try { 
+      const _service = require(require('path').join(this.dirname, this.dirservices, `${this.serviceName}-service`)); 
+      return _service;
+    }
     catch(err) {}
   }
   
