@@ -1,5 +1,8 @@
 # sicinfo-load
 
+## [3.0.0]
+- altera estruturação dos objectos
+
 ## [2.0.3]
 - correções diversas
 
