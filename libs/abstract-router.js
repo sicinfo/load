@@ -13,16 +13,12 @@ const symb = Symbol();
 
 module.exports =  class  {
 
-  constructor(arg) {
-    this[symb] = { arg };
+  constructor(http) {
+    this[symb] = { http };
   }
   
-  get appname() {
-    return this[symb].arg.appname;
-  }
-    
   get headers()  {
-    return this[symb].arg.request.headers;
+    return this[symb].http.request.headers;
   }
   
   get hostname() {
@@ -38,7 +34,7 @@ module.exports =  class  {
   }
 
   get method() {
-    return this[symb].arg.request.method;
+    return this[symb].http.request.method;
   }
   
   get isGetMethod() {
@@ -46,15 +42,11 @@ module.exports =  class  {
   }
   
   get originalUrl() {
-    return this[symb].arg.request.url;
+    return this[symb].http.request.url;
   }
   
   get url() {
-    return this[symb].arg.url;
-  }
-  
-  get dirname() {
-    return this[symb].arg.dirname;
+    return this[symb].http.url;
   }
   
   get dirservices() {
@@ -67,12 +59,28 @@ module.exports =  class  {
   
   // nível de serviço
   get service()  {
-
-    if (this.serviceName) try { 
-      const _service = require(require('path').join(this.dirname, this.dirservices, `${this.serviceName}-service`)); 
-      return _service;
+    const { serviceName } = this;
+    if (serviceName) try { 
+      const { dirname, dirservices } = this;
+      return require(require('path').join(dirname, dirservices, `${serviceName}-service`)); 
     }
     catch(err) {}
+  }
+  
+  get cache() {
+    return this[symb].http.cache;
+  }
+    
+  get dbconfig() {
+    return this.cache.dbconfig;
+  }
+
+  get appname() {
+    return this.cache.appname;
+  }
+    
+  get dirname() {
+    return this.cache.dirname;
   }
   
 };

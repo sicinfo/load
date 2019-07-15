@@ -8,10 +8,10 @@ log('loading...');
 
 const symb = Symbol();
  
-module.exports = class Service {
+module.exports = class AbstractService {
   
-  constructor(arg) {
-    this[symb] = { arg };
+  constructor(router) {
+    this[symb] = { router };
   }
   
   get requiredAuthorization() {
@@ -19,31 +19,31 @@ module.exports = class Service {
   }
   
   get protocol() {
-    return this[symb].arg.protocol;
+    return this[symb].router.protocol;
   }
   
   get dirname() {
-    return this[symb].arg.dirname;
+    return this[symb].router.dirname;
   }
   
   get key() {
-    return this[symb].arg.url.split('?')[0].split('/')[2];
+    return this[symb].router.url.split('?')[0].split('/')[2];
   }
 
   get rev() {
-    return this[symb].arg.url.split('?')[0].split('/')[3];
+    return this[symb].router.url.split('?')[0].split('/')[3];
   }
   
   get ip() {
-    return this[symb].arg.ip;
+    return this[symb].router.ip;
   }
   
   get method() {
-    return this[symb].arg.method;
+    return this[symb].router.method;
   }
   
   get authorization() {
-    return this[symb].arg.authorization;
+    return this[symb].router.authorization;
   }
   
   get isAuthorized() {
@@ -51,7 +51,15 @@ module.exports = class Service {
   }
   
   get isGetMethod() {
-    return this[symb].arg.isGetMethod;
+    return this[symb].router.isGetMethod;
+  }
+  
+  get cache() {
+    return this[symb].router.cache;
+  }
+  
+  get dbconfig() {
+    return this[symb].router.dbconfig;
   }
   
 };

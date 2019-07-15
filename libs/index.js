@@ -75,19 +75,18 @@ module.exports = function(arg) {
       
       const 
         { protocol } = options,
-        { method } = options.request,
+        _routers = _cache[protocol] || (_cache[protocol] = {}),
         originalUrl = options.request.url,
-        routeName = originalUrl.split('/').slice(0, 3).join('/'),
-        routers = _cache[protocol] || (_cache[protocol] = {});
+        routeName = originalUrl.split('/').slice(0, 3).join('/');
 
-      NODE_ENV === 'dev' || log([
+      NODE_ENV === 'dev' || (({ method }) => log([
         ` `,
         `-> ${new Date().toISOString()} - ${protocol} ${method} ${originalUrl}`,
         '-'.repeat(32 + method.length + originalUrl.length + protocol.toString().length)
-      ].join('\n'));
+      ].join('\n')))(options.request);
       
       // cache first level micro service
-      if (!routers[routeName]) {
+      if (!_routers[routeName]) _routers[routeName] = (() => {
         
         const 
           dirname = join(appsDir, routeName.slice(1).replace('/', '-')),
@@ -107,16 +106,18 @@ module.exports = function(arg) {
           return NODE_ENV === 'dev' && error;
         }
         
-        routers[routeName] = [
-          require(join(dirname, main)),
-          { version, 'appname': routeName.slice(1).split('/')[1], 'dirname': realpathSync(dirname) }
-        ];
-      }
+        return {
+          'router' : require(join(dirname, main)),
+          'options': { dbconfig, version, 'appname': routeName.slice(1).split('/')[1], 'dirname': realpathSync(dirname) }
+        };
+      })();
+      
+      const { router } = _routers[routeName];
+      options.url = originalUrl.replace(routeName, '');
+      options.cache = _routers[routeName].options;
+      
       try { 
-        accept({ 
-          'router': routers[routeName][0],
-          'options': Object.assign({}, routers[routeName][1], options, { 'url': originalUrl.replace(routeName, '') })
-        });
+        accept({ router, options });
         if (NODE_ENV === 'dev') return _cache;
       }
       catch (err) { 
@@ -130,7 +131,7 @@ module.exports = function(arg) {
     wsServer = new(require('websocket')).server({ httpServer });
     
   httpServer.on('request', (request, response) => {
-    makeRoute({ 'protocol': 'HTTP', request, response, dbconfig })
+    makeRoute({ 'protocol': 'HTTP', request, response })
       .then(({ router, options }) => { new router(options) })
       .catch(({ message }) => {
         response.statusCode = 404;
