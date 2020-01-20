@@ -1,106 +1,166 @@
-/** *
+/**
+ * application: load
+ * 
+ * updated by Moreira in 2019-07-26
+ * 
+ * powered by Moreira in 2019-04-10
+ * 
+ * http://www.typescriptlang.org/play/index.html
+ */
+
+
+/**
  * application: load
  * 
  * powered by Moreira in 2019-04-10
  * 
  * http://www.typescriptlang.org/play/index.html
  */
- 
-const
-log = (a, ...b) => console.log(a, __filename, ...b), 
-warn = (a, ...b) => console.warn(a, __filename, ...b);
+const log = (a, ...b) => (({log}) => {
+  log(a, __filename);
+  for (const m of b) log(' -', m);
+})(console);
 log('loading...');
 
-const symb = Symbol();
+const 
+  _map = new WeakMap(),
+  _set = (a, b, c) => _map.get(a).set(b, c),
+  _get = (a, b) => _map.get(a).get(b);
 
-module.exports = class RouterHttp extends require('./abstract-router') {
+module.exports = class extends require('./http-abstract') {
   
-  constructor(http) {
-    super(http);
-    this[symb] = { http };
+  constructor(options) {
+    super();
     
-    let { service } = this;
+    _map.set(this, new Map());
 
-    if (!service) {
-      const { originalUrl, url } = this;
-      this.statusCode(404).json({ 
-        'message': `${require('path').join(originalUrl.split(url)[0], url)} - not found!` 
-      });
-      return;
+    { /**
+       * verifica atributos:
+       * service, serviceName, key, rev
+       */
+       
+      const 
+        { join } = require('path'),
+        { dirservices } = this,
+        { dirname } = this.locals,
+        { url } = options,
+        _url = url.splice(0);
+      
+      let service; 
+        
+      do { 
+        // pega o último
+        const arg = _url.pop();
+  // console.log(48, __filename, arg)        ;
+        if (arg === '') continue;
+        
+        if (isNaN(arg)) {
+  // console.log(53, __filename, dirname, dirservices, ..._url, `${arg}-service`);          
+          try {
+  // console.log(55, __filename, join(dirname, dirservices, ..._url, `${arg}-service`));            
+            service = require(join(dirname, dirservices, ..._url, `${arg}-service`));
+            url.unshift(arg);
+            break;
+          } catch (e) { /* console.warn(63, __filename, e.message) */ }
+          
+          if (url[0]) try {
+            service = require(join(dirname, dirservices, ..._url, arg, `${url[0]}-service`));
+            break;
+          } catch (e) { /* console.warn(68, __filename, e.message) */ }
+          
+        }
+        
+        url.unshift(arg);
+      } while (_url.length);
+  
+  // console.log(67, __filename, url)    ;
+  // console.log(68, __filename, options.url)    ;
+  // console.log(69, __filename, this._url)    ;
+  // console.log(70, __filename, service)    ;
+  
+      _set(this, 'service', service)
+      _set(this, 'url', url);
+      
     }
-    
-    const Auth = require('./auth');
-    service = new service(this);
-    
-    Auth.validate(this.authorization, service.requiredAuthorization)
-      .then(({ token }) => {
-        service[`do_${this.method.toLowerCase()}`]()
-          .then(({ code, result, headers = []}) => {
-            
-            if (token) headers.push(Auth.renew(token));
-            headers.forEach(arg => this.setHeader(...arg));
-            
-            if (result) this.statusCode(code || 200).json({ result });
-            else this.statusCode(code || 204).send();
-          })
-          .catch(({ code, error, message }) => {
-            warn(33, 'code', code);
-            warn(34, 'message', message);
-            warn(35, 'error', error);
-            this.statusCode(code || 500);
-            if (message || error) this.json({ 'message': message || error });
-            else this.send();
-          });
-      });
+      
+    (initialize => this.isGetOrDeleteMethod ? initialize() : (
+      this.request.setEncoding('utf8'),
+      this.request.on('data', chunk => _set(this, 'body', chunk && JSON.parse(chunk))),
+      this.request.on('end', initialize),
+      this.request.on('error', initialize)
+    ))(() => new Promise((resolve, reject) => {
+      this.service ?
+      new this.service(this, resolve, reject) :
+      reject({'code': this.serviceName, 'message': `service not found`});
+    }).then(({ code, result, headers = [] }) => {
+      headers.forEach(arg => this.setHeader(...arg));
+      if (result) this.statusCode(code || 200).json({ result });
+      else this.statusCode(code || 204).send();
+    }).catch(err => {
+      let { code, message, syscall } = err;
+      console.warn('http-router', 'code', code);
+      console.warn('http-router', 'message', message);
+      console.warn('http-router', 'syscall', syscall);
+      console.warn('http-router', err.class);
+      undefined === code || null === code || isNaN(code) &&
+      ([code, message] = [500, `${code} - ${message}`]);
+      this.statusCode(code || 500).send(message);
+    }));
+
   }
   
-  async getBody() {
-    if (undefined === this[symb].body) 
-      this[symb].body = await new Promise((accept, reject) => {
-        const { request } = this[symb].http;
-        request.on('data', chunk => accept(JSON.parse(chunk)));
-        request.on('end', () => {});
-        request.on('error', () => reject({}));
-      });
-    return this.hasBody && this[symb].body;
+  get method() {
+    return this.request.method;
+  }
+  
+  get dirservices() {
+    return `services`;
+  }
+  
+  get service() {
+    return _get(this, 'service');
   }
 
-  get hasBody() {
-    if (undefined === this[symb].hasBody) 
-      this[symb].hasBody = !!Object.keys(this.getBody()).length;
-    return this[symb].hasBody;
+  get url() {
+    return _get(this, 'url');
+  }
+
+  get query() {
+    return _get(this, 'query') ||
+      (query => _set(this, 'query', query) && query)
+      (require('url').parse(this.request.url, true).query);
+  }
+
+  get body() {
+    return _get(this, 'body');
   }
   
-  getQuery() {
-    if (undefined === this[symb].query)
-      this[symb].query = require('url').parse(this.originalUrl, true).query;  
-    return this[symb].query;
+  get hostname() {
+    return this.request.headers.host;
   }
-    
-  get hasBody() {
-    if (undefined === this[symb].hasQuery) 
-      this[symb].hasQuery = !!Object.keys(this.getQuery()).length;
-    return this[symb].hasQuery;
-  }
+  
+//*************************************************************
+// sem teste
+//*************************************************************
 
   setHeader(key, value) {
-    this[symb].http.response.setHeader(key, value);
+    this.response.setHeader(key, value);
     return this;
   }
-  
+      
   statusCode(code) {
-    this[symb].http.response.statusCode = code;
+    this.response.statusCode = code;
     return this;
   }
   
   json(data) {
     this.setHeader('content-type', 'application/json');
-    this[symb].http.response.end(JSON.stringify(data), 'utf8');
+    this.response.end(JSON.stringify(data), 'utf8');
   }
   
   send(arg) {
     this.setHeader('content-type', 'text/plain');
-    this[symb].http.response.end(arg, 'utf8');
+    this.response.end(arg, 'utf8');
   }
-  
+
 };

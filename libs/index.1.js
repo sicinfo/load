@@ -42,11 +42,9 @@ const HttpServer = function(env) {
       return dbconfig;
     })(CONFIG),
     { prefixDir = 'WS' } = CONFIG,
-    httpServer = require('http').createServer(),
-    wmap = new WeakMap();
-    
+    httpServer = require('http').createServer();
+  
   httpServer.on('request', (_request, _response) => {
-
     const
       url = (_request.url.split(`${prefixDir}`)[1] || '').split('?')[0].replace(/^\/|\/$/g, '').split('/'),
       _module = (arg => arg ? `${prefixDir}-${arg}` : '')(url.shift());
@@ -59,22 +57,25 @@ const HttpServer = function(env) {
       
       if (!_module) throw {'code': 'MODULE_NOT_FOUND', 'message': `/${_module} `};
       const dirname = realpathSync(join(appsDir, _module)); 
-
-      if (!statSync(dirname).isDirectory()) throw {'code': 'MODULE_NOT_FOUND', 'message': `/${_module} `};
-      const ServiceClass = require(dirname);
-      wmap.has(ServiceClass) || wmap.set(ServiceClass, { dirname, dbconfig });
       
-      (Service => new Service({ url }))
-      (class extends ServiceClass {
+      if (!statSync(dirname).isDirectory()) throw {'code': 'MODULE_NOT_FOUND', 'message': `/${_module} `};
+      CONFIG[`_${_module}`] || (CONFIG[`_${_module}`] = { dirname , dbconfig });
+      
+      (Service => {
+        new Service({ url });
+      })(class extends require(dirname) {
         get request() { return _request }
         get response() { return _response }
-        get locals() { return wmap.get(ServiceClass) }
-      });        
+        get locals() { return CONFIG[`_${_module}`] }
+        set locals(arg) { Object.assign(CONFIG[`_${_module}`], arg) }
+      });
+      
     }
-    
     catch (err) {
+console.log(75, __filename, err);
       _response.statusCode = 500;
       _response.end(`${err.code} - (${err.message})`);
+      delete CONFIG[`_${_module}`];
     }
   });
   
@@ -96,6 +97,7 @@ const HttpServer = function(env) {
   
   return httpServer;
 };
+
 
 if ('test' === process.env.NODE_ENV) {
   module.exports = env => /*(console.log)(99, __filename, env) || */

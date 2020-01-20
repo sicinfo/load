@@ -43,6 +43,7 @@ const HttpServer = function(env) {
     })(CONFIG),
     { prefixDir = 'WS' } = CONFIG,
     httpServer = require('http').createServer(),
+    Auth = require('./auth'),
     wmap = new WeakMap();
     
   httpServer.on('request', (_request, _response) => {
@@ -64,12 +65,16 @@ const HttpServer = function(env) {
       const ServiceClass = require(dirname);
       wmap.has(ServiceClass) || wmap.set(ServiceClass, { dirname, dbconfig });
       
-      (Service => new Service({ url }))
-      (class extends ServiceClass {
+      (cb => Auth.verify(_request.headers)
+        .then(({ token }) => cb(token)).catch(({ message }) => cb({ 'error': message }))
+      )(_authorization => (Service => {
+        new Service({ url });
+      })(class extends ServiceClass {
+        get authorization() { return _authorization }
         get request() { return _request }
         get response() { return _response }
         get locals() { return wmap.get(ServiceClass) }
-      });        
+      }));        
     }
     
     catch (err) {
