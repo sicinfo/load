@@ -78,7 +78,7 @@ module.exports = class extends require('./http-abstract') {
   // console.log(69, __filename, this._url)    ;
   // console.log(70, __filename, service)    ;
   
-      _set(this, 'service', service)
+      _set(this, 'service', service);
       _set(this, 'url', url);
       
     }

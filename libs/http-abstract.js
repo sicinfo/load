@@ -36,7 +36,7 @@ module.exports =  class  {
   }
   
   get hostname() {
-    return _args(this).hostname;
+    return Reflect.get(_args(this), 'hostname');
   }
   
   get id() {
