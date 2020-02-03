@@ -2,7 +2,8 @@
   /* https://storybook.js.org/docs/configurations/typescript-config/#tsconfigjson */
   "compilerOptions": {
     "target": "es2016",
-    "module": "system",
+    // "module": "system",
+    "module": "commonjs",
     "strict": true,
     "removeComments": true,
     // "incremental": true,
@@ -15,12 +16,13 @@
     //"extendedDiagnostics": true,
     //"newLine": "",
     "baseUrl": ".",
-    "outDir": "dist",
+    "outDir": "libs",
+    // "rootDir": "./",
     "lib": ["es5", "es6", "es7", "dom"],
     "moduleResolution": "node",
     "locale": "pt-BR",
     "paths": {
-      "websocket": ["../node_modules/websocket/lib/websocket"]
+      // "websocket": ["../node_modules/websocket/lib/websocket"]
     },
     "types": ["node"],
     "typeRoots": [

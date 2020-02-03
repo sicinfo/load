@@ -1,5 +1,8 @@
 # sicinfo-load
 
+## [release/kinghost] 
+- inclui isOptionsMethod in http_abstract
+
 ## [3.0.0]
 - altera estruturação dos objectos
 

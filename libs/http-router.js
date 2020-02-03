@@ -1,166 +1,150 @@
-/**
- * application: load
- * 
- * updated by Moreira in 2019-07-26
- * 
- * powered by Moreira in 2019-04-10
- * 
- * http://www.typescriptlang.org/play/index.html
- */
-
-
-/**
- * application: load
- * 
- * powered by Moreira in 2019-04-10
- * 
- * http://www.typescriptlang.org/play/index.html
- */
-const log = (a, ...b) => (({log}) => {
-  log(a, __filename);
-  for (const m of b) log(' -', m);
-})(console);
-log('loading...');
-
-const 
-  _map = new WeakMap(),
-  _set = (a, b, c) => _map.get(a).set(b, c),
-  _get = (a, b) => _map.get(a).get(b);
-
-module.exports = class extends require('./http-abstract') {
-  
-  constructor(options) {
-    super();
-    
-    _map.set(this, new Map());
-
-    { /**
-       * verifica atributos:
-       * service, serviceName, key, rev
-       */
-       
-      const 
-        { join } = require('path'),
-        { dirservices } = this,
-        { dirname } = this.locals,
-        { url } = options,
-        _url = url.splice(0);
-      
-      let service; 
-        
-      do { 
-        // pega o último
-        const arg = _url.pop();
-  // console.log(48, __filename, arg)        ;
-        if (arg === '') continue;
-        
-        if (isNaN(arg)) {
-  // console.log(53, __filename, dirname, dirservices, ..._url, `${arg}-service`);          
-          try {
-  // console.log(55, __filename, join(dirname, dirservices, ..._url, `${arg}-service`));            
-            service = require(join(dirname, dirservices, ..._url, `${arg}-service`));
-            url.unshift(arg);
-            break;
-          } catch (e) { /* console.warn(63, __filename, e.message) */ }
-          
-          if (url[0]) try {
-            service = require(join(dirname, dirservices, ..._url, arg, `${url[0]}-service`));
-            break;
-          } catch (e) { /* console.warn(68, __filename, e.message) */ }
-          
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const utils_1 = require("./utils");
+utils_1.log(__filename);
+const _sym = Symbol();
+class HttpRouter {
+    constructor(args) {
+        this[_sym] = args;
+        let { service, locals = {}, url = [] } = args;
+        if (!service) {
+            const { join } = require('path'), { dirservices } = this, { dirname } = locals, _url = url.splice(0);
+            do {
+                const arg = _url.pop(), dir = [dirname, dirservices, ..._url];
+                if (!arg)
+                    continue;
+                if (isNaN(arg)) {
+                    try {
+                        const _file = join(...dir, `${arg}-service`);
+                        service = require(_file);
+                        url.unshift(arg);
+                        break;
+                    }
+                    catch (e) {
+                    }
+                    if (url[0])
+                        try {
+                            const _file = join(...dir, `${arg}-service`, `${url[0]}-service`);
+                            service = require(_file);
+                            break;
+                        }
+                        catch (e) {
+                        }
+                }
+                url.unshift(arg);
+            } while (_url.length);
         }
-        
-        url.unshift(arg);
-      } while (_url.length);
-  
-  // console.log(67, __filename, url)    ;
-  // console.log(68, __filename, options.url)    ;
-  // console.log(69, __filename, this._url)    ;
-  // console.log(70, __filename, service)    ;
-  
-      _set(this, 'service', service);
-      _set(this, 'url', url);
-      
+        this[_sym].service = service;
+        this[_sym].url = url;
+        const reject = (err) => {
+            let { code, message, syscall } = err;
+            console.warn('http-router', 'code', code);
+            console.warn('http-router', 'message', message);
+            console.warn('http-router', 'syscall', syscall);
+            console.warn('http-router', err.class);
+            undefined === code || null === code || isNaN(code) &&
+                ([code, message] = [500, `${code} - ${message}`]);
+            this.statusCode(code || 500).sendText(message);
+        };
+        if (!this.service)
+            reject({
+                'message': `service not found`
+            });
+        else {
+            const resolve = ({ code, result, headers = [] }) => {
+                headers.some(([key, val]) => { this.setHeader(key, val); });
+                if (result)
+                    this.statusCode(code || 200).sendJson({ result });
+                else
+                    this.statusCode(code || 204).sendText();
+            }, initialize = () => new this.service(this, resolve, reject);
+            if (this.isPostOrPutOrPatchMethod) {
+                this.request.setEncoding('utf8');
+                this.request.on('data', chunk => { if (chunk)
+                    this[_sym].body = JSON.parse(chunk); });
+                this.request.on('end', initialize);
+                this.request.on('error', initialize);
+            }
+            else
+                initialize();
+        }
     }
-      
-    (initialize => this.isGetOrDeleteMethod ? initialize() : (
-      this.request.setEncoding('utf8'),
-      this.request.on('data', chunk => _set(this, 'body', chunk && JSON.parse(chunk))),
-      this.request.on('end', initialize),
-      this.request.on('error', initialize)
-    ))(() => new Promise((resolve, reject) => {
-      this.service ?
-      new this.service(this, resolve, reject) :
-      reject({'code': this.serviceName, 'message': `service not found`});
-    }).then(({ code, result, headers = [] }) => {
-      headers.forEach(arg => this.setHeader(...arg));
-      if (result) this.statusCode(code || 200).json({ result });
-      else this.statusCode(code || 204).send();
-    }).catch(err => {
-      let { code, message, syscall } = err;
-      console.warn('http-router', 'code', code);
-      console.warn('http-router', 'message', message);
-      console.warn('http-router', 'syscall', syscall);
-      console.warn('http-router', err.class);
-      undefined === code || null === code || isNaN(code) &&
-      ([code, message] = [500, `${code} - ${message}`]);
-      this.statusCode(code || 500).send(message);
-    }));
-
-  }
-  
-  get method() {
-    return this.request.method;
-  }
-  
-  get dirservices() {
-    return `services`;
-  }
-  
-  get service() {
-    return _get(this, 'service');
-  }
-
-  get url() {
-    return _get(this, 'url');
-  }
-
-  get query() {
-    return _get(this, 'query') ||
-      (query => _set(this, 'query', query) && query)
-      (require('url').parse(this.request.url, true).query);
-  }
-
-  get body() {
-    return _get(this, 'body');
-  }
-  
-  get hostname() {
-    return this.request.headers.host;
-  }
-  
-//*************************************************************
-// sem teste
-//*************************************************************
-
-  setHeader(key, value) {
-    this.response.setHeader(key, value);
-    return this;
-  }
-      
-  statusCode(code) {
-    this.response.statusCode = code;
-    return this;
-  }
-  
-  json(data) {
-    this.setHeader('content-type', 'application/json');
-    this.response.end(JSON.stringify(data), 'utf8');
-  }
-  
-  send(arg) {
-    this.setHeader('content-type', 'text/plain');
-    this.response.end(arg, 'utf8');
-  }
-
-};
+    get body() {
+        return this[_sym].body;
+    }
+    get dirservices() {
+        return `services`;
+    }
+    get headers() {
+        return this.request.headers;
+    }
+    get hostname() {
+        return this.headers.host;
+    }
+    get isDeleteMethod() {
+        return 'DELETE' === this.method;
+    }
+    get isGetMethod() {
+        return 'GET' === this.method;
+    }
+    get isGetOrDeleteMethod() {
+        return this.isGetMethod || this.isDeleteMethod;
+    }
+    get isOptionsMethod() {
+        return 'OPTIONS' === this.method;
+    }
+    get isPatchMethod() {
+        return 'PATCH' === this.method;
+    }
+    get isPostMethod() {
+        return 'POST' === this.method;
+    }
+    get isPostOrPutOrPatchMethod() {
+        return this.isPostMethod || this.isPutMethod || this.isPatchMethod;
+    }
+    get isPutMethod() {
+        return 'PUT' === this.method;
+    }
+    get method() {
+        return this.request.method;
+    }
+    get query() {
+        return (Reflect.has(this[_sym], 'query') ||
+            Reflect.set(this[_sym], 'query', require('url').parse(this.request.url, true).query)) && Reflect.get(this[_sym], 'query');
+    }
+    get request() {
+        return this[_sym].request;
+    }
+    get response() {
+        return this[_sym].response;
+    }
+    get service() {
+        return this[_sym].service;
+    }
+    get url() {
+        return this[_sym].url;
+    }
+    setHeader(key, val) {
+        this.response.setHeader(key, val);
+        return this;
+    }
+    hasHeader(key) {
+        return this.response.hasHeader(key);
+    }
+    statusCode(code) {
+        this.response.statusCode = code;
+        return this;
+    }
+    sendJson(data = {}) {
+        this.setHeader('content-type', 'application/json').send(JSON.stringify(data));
+    }
+    sendText(arg = '') {
+        this.setHeader('content-type', 'text/plain').send(arg);
+    }
+    send(arg) {
+        this.response.end(arg, 'utf8');
+    }
+}
+exports.default = HttpRouter;
+;
+module.exports = HttpRouter;
