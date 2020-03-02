@@ -1,0 +1,12 @@
+{
+  "name": "test",
+  "version": "3.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "NODE_ENV=test ../../node_modules/.bin/mocha load-test.js"
+  },
+  "author": "",
+  "license": "ISC"
+
+}
