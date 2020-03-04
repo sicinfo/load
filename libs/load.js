@@ -16,6 +16,7 @@ const
   appsDir = process.env.pm_exec_path,
   etcDir = process.env.pm_cwd.replace('apps_node', 'etc/apps_node'),
   envName = process.env.name,
+  port = process.env[`PORT_${envName}`],
   cfgs = new Map();
 
 require('http').createServer().on('request', function (req, res) {
@@ -61,16 +62,17 @@ require('http').createServer().on('request', function (req, res) {
 
 }).on('listening', function () {
 
-  const { address, port } = this.address();
-  const lns = [
-    `${process.title.split(' ')[0]} ${process.version}`,
-    `${new Date().toISOString()}: Listening:`,
-    `-> ${address}:${port}${appsDir}`,
-    '\n.'.repeat(6)
-  ];
+  const
+    { address, port } = this.address(),
+    lns = [
+      `${process.title.split(' ')[0]} ${process.version}`,
+      `${new Date().toISOString()}: Listening:`,
+      `-> ${address}:${port}${appsDir}`,
+      '\n.'.repeat(6)
+    ];
 
   console.log(
     ['-'.repeat(1 * lns.reduce((a, b) => Math.max(a, b.length), 0)), ...lns].join('\n')
   );
 
-}).listen(process.env[`PORT_${process.env.name}`]);
+}).listen(port);
