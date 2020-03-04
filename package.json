@@ -1,15 +1,17 @@
 {
   "version": "4.0.0",
   "name": "sicinfo-load",
-  "description": "carregador de primeiro nível de micro serviço",
+  "description": "carregador de primeiro nï¿½vel de micro serviï¿½o",
   "main": "libs/index.js",
   "type": "module",
   "dependencies": {},
   "devDependencies": {
-    "axios": "^0",
-    "chai": "^3",
-    "chai-http": "^2",
-    "mocha": "^2"
+    "@types/sequelize": "^4.28.8",
+    "axios": "^0.19.2",
+    "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
+    "chai-http": "^4.3.0",
+    "mocha": "^7.0.1"
   },
   "scripts": {
     "start": "NODE_ENV=dev node index.js",
