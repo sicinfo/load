@@ -190,7 +190,7 @@ module.exports = class {
   }
 
   get dirname() {
-    return this[$].props.dirname;
+    return this[$].props.dirName;
   }
 
   get dirservices() {
