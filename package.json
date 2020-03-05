@@ -4,7 +4,9 @@
   "description": "carregador de primeiro n�vel de micro servi�o",
   "main": "libs/index.js",
   "type": "module",
-  "dependencies": {},
+  "dependencies": {
+    "jsonwebtoken": "^8.5.1"
+  },
   "devDependencies": {
     "@types/sequelize": "^4.28.8",
     "axios": "^0.19.2",
