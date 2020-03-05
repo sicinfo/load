@@ -1,5 +1,8 @@
 # sicinfo-load
 
+## [4.0.1-bugfix] by moreira
+- 
+
 ## [4.0.0] 2020-03-02
 - altera estrutura para provedor kinghost.net
 - inclui envName -> process.env.name
