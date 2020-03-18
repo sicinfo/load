@@ -1,5 +1,8 @@
 # sicinfo-load
 
+## [2.0.4]
+- treinamento em hotfix
+
 ## [2.0.3]
 - correções diversas
 
