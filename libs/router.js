@@ -42,6 +42,10 @@ module.exports = class {
     else createService();
   }
 
+  get app() {
+    return this[$].props.app;
+  }
+
   get service() {
     return this[$].service || (
       this[$].service = this[$].props.service || (() => {
