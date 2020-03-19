@@ -26,22 +26,22 @@ require('http').createServer().on('request', function (req, res) {
   );
 
   const 
-    url = req.url.split('?')[0].replace(/^\/*|\/$/g, '').split('/'),
-    app = (arg => arg ? `${envName}-${arg}` : '')(url.shift()),
-    cfg = join(etcDir, `${app}.json`);
+    [ app, ...url ] = req.url.split('?')[0].replace(/^\/*|\/$/g, '').split('/'),
+    cfg = `${etcDir}-${envName}.${req.headers.host}.json`,
+    dirName = join(appsDir, req.headers.host);
 
   try {
 
     if (!cfgs.has(cfg)) {
       const {
-        version, main, dbConfig = {}, dirName = join(appsDir, app)
+        version, main, dbConfig = {}
       } = JSON.parse(readFileSync(cfg, { encoding: 'utf8' }));
       if (undefined === main) throw { 'code': 'MAIN_NOT_FOUND' };
-      cfgs.set(cfg, { main, dbConfig, dirName, version });
+      cfgs.set(cfg, { main, dbConfig, version });
     }
 
-    const { main, dirName, dbConfig, version } = cfgs.get(cfg);
-    new (require(join(dirName, main)))({ req, res, envName, dirName, dbConfig, url, version });
+    const { main, dbConfig, version } = cfgs.get(cfg);
+    new (require(join(dirName, main)))({ req, res, app, envName, dirName, dbConfig, url, version });
 
   } catch (err) {
 
