@@ -1,7 +1,7 @@
 # sicinfo-load
 
-## [4.0.1-bugfix] by moreira
-- 
+## [4.1.0] by moreira 2020-03-19
+- altera load para adaptar a mudança na arquitetura do kinghost
 
 ## [4.0.0] 2020-03-02
 - altera estrutura para provedor kinghost.net
