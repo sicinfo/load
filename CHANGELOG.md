@@ -1,5 +1,9 @@
 # sicinfo-load
 
+## [6.0.0] by moreira 2020-03-28
+- altera load para adaptar a mudança na arquitetura
+- router.js: inclui appDescription, appName, appVersion
+
 ## [5.0.0] by moreira 2020-03-19
 - altera load para adaptar a mudança na arquitetura do kinghost
 
@@ -24,7 +28,7 @@
 - altera assinatura dos methods de router
 
 ## [1.2.1] moreira in 2019-06-19
-- inclui dirname para service
+- inclui dirName para service
 
 ## [1.2.0] moreira in 2019-06-06
 - altera para service ser, também, um diretório
