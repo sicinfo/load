@@ -56,9 +56,9 @@ describe('Suite test to load', () => {
         expect(new Router({ cache: { a: 1 } }).cache.a).to.equal(1);
       })
 
-      it('#dirservices', () => {
-        expect(new Router().dirservices).to.equal('services');
-        expect(new Router({ dirservices: 'a' }).dirservices).to.equal('a');
+      it('#dirServices', () => {
+        expect(new Router().dirServices).to.equal('services');
+        expect(new Router({ dirServices: 'a' }).dirServices).to.equal('a');
       })
 
       it('#query', () => {

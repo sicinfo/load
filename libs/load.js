@@ -9,40 +9,44 @@
  * https://medium.com/@oieduardorabelo/typescript-o-guia-definitivo-1a63b04259cc
  */
 
-const 
+const
   { join } = require('path'),
   { readFileSync } = require('fs'),
-  
-  appsDir = process.env.pm_exec_path,
-  etcDir = process.env.pm_cwd.replace('apps_node', 'etc/apps_node'),
+
+  appsDir = join(process.env.cwd, process.env.watch || 'dist'),
+  etcDir = join(process.env.cwd, 'etc'),
   envName = process.env.name,
-  port = process.env[`PORT_${envName}`],
-  cfgs = new Map();
+  port = process.env.PORT,
+  cfgs = new Map(),
+  isProdEnv = 'API' === envName.toUpperCase();
 
 require('http').createServer().on('request', function (req, res) {
 
-  if ('WS' !== envName) console.log(
+  isProdEnv || console.log(
     `-> ${envName}: ${new Date().toISOString()} - HTTP ${req.method} ${req.url}`
   );
 
-  const 
-    [ app, ...url ] = req.url.split('?')[0].replace(/^\/*|\/$/g, '').split('/'),
-    cfg = `${etcDir}-${envName}.${req.headers.host}.json`,
-    dirName = join(appsDir, req.headers.host);
+  const
+    [appName, ...url] = req.url.split('?')[0].replace(/^\/*|\/$/g, '').split('/'),
+    cfg = join(etcDir, `app-${appName}.json`);
 
   try {
 
-    if (!cfgs.has(cfg)) {
-      const {
-        version, main, dbConfig = {}
-      } = JSON.parse(readFileSync(cfg, { encoding: 'utf8' }));
-      if (undefined === main) throw { 'code': 'MAIN_NOT_FOUND' };
-      cfgs.set(cfg, { main, dbConfig, version });
-    }
+    const
+      { main, dbConfig, version, description } = cfgs.get(cfg) || (() => {
+        const
+          { version, main, description } = JSON.parse(readFileSync(cfg, { encoding: 'utf8' })),
+          dbConfig = {};
 
-    const { main, dbConfig, version } = cfgs.get(cfg);
-    new (require(join(dirName, main)))({ req, res, app, envName, dirName, dbConfig, url, version });
+        if (undefined === main) throw { 'code': 'MAIN_NOT_FOUND' };
+        try { Object.assign(dbConfig, JSON.parse(readFileSync(join(etcDir, `db-${appName}.json`)))) }
+        catch (err) { }
 
+        return (arg => cfgs.set(cfg, arg) && arg)({ main, dbConfig, version, description });
+      })(),
+      dirName = join(appsDir, `app-${appName}`);
+
+    new (require(join(dirName, main)))({ req, res, appName, envName, dirName, dbConfig, url, version, description });
   } catch (err) {
 
     console.warn(err.stack);
@@ -53,7 +57,6 @@ require('http').createServer().on('request', function (req, res) {
 
     res.statusCode = 502;
     res.end(JSON.stringify(err));
-
   }
 
 }).on('clientError', function (err, socket) {
